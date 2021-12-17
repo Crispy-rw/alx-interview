@@ -1,41 +1,44 @@
 #!/usr/bin/python3
-"""stats module
 """
-from sys import stdin
+Log parsing
+"""
+import sys
 
 
-codes = {'200': 0, '301': 0, '400': 0, '401': 0,
-         '403': 0, '404': 0, '405': 0, '500': 0}
-size = 0
-
-
-def print_info():
-    """print_info method print needed info
-    Args:
-        codes (dict): code status
-        size (int): size of files
+def print_metrics(file_size, status_codes):
     """
-    print("File size: {}".format(size))
-    for key, val in sorted(codes.items()):
-        if val > 0:
-            print("{}: {}".format(key, val))
+    Print metrics
+    """
+    print("File size: {}".format(file_size))
+    codes_sorted = sorted(status_codes.keys())
+    for code in codes_sorted:
+        if status_codes[code] > 0:
+            print("{}: {}".format(code, status_codes[code]))
 
 
-if __name__ == '__main__':
+codes_count = {'200': 0, '301': 0, '400': 0, '401': 0,
+               '403': 0, '404': 0, '405': 0, '500': 0}
+file_size_total = 0
+count = 0
 
+if __name__ == "__main__":
     try:
-        for i, line in enumerate(stdin, 1):
+        for line in sys.stdin:
             try:
-                info = line.split()
-                size += int(info[-1])
-                if info[-2] in codes.keys():
-                    codes[info[-2]] += 1
-            except:
+                status_code = line.split()[-2]
+                if status_code in codes_count.keys():
+                    codes_count[status_code] += 1
+                # Grab file size
+                file_size = int(line.split()[-1])
+                file_size_total += file_size
+            except Exception:
                 pass
-            
-            if not i % 10:
-                print_info()
+            # print metrics if 10 lines have been read
+            count += 1
+            if count == 10:
+                print_metrics(file_size_total, codes_count)
+                count = 0
     except KeyboardInterrupt:
-        print_info()
+        print_metrics(file_size_total, codes_count)
         raise
-    print_in
+    print_metrics(file_size_total, codes_count)
